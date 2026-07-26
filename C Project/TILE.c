@@ -8,10 +8,10 @@
 #define _CRT_SECURE_NO_WARNINGS
 
 /* -------------------- 라이브러리 -------------------- */
-#include <stdio.h>    
-#include <string.h>   
-#include <stdlib.h>   
-#include <time.h>     
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <time.h>
 #include <termios.h>  // struct termios, tcgetattr, tcsetattr (터미널 입력 방식을 제어)
 
 /* -------------------- define -------------------- */
@@ -29,7 +29,7 @@
 #define SHOW_CURSOR  "\033[?25h"      // 숨긴 커서를 다시 보이게 한다
 
 /* -------------------- ANSI 색상 코드 -------------------- */
-/* > 위의 CLEAR_SCREEN 과 같은 종류이며, 글자의 색과 굵기를 바꾼다.
+/* > 위의 CLEAR_SCREEN 과 같은 종류이며, 글자의 색과 굵기를 바꾼다.        */
 #define C_RESET   "\033[0m"           // 색을 원래대로 되돌린다. 색을 켰으면 반드시 짝을 맞춰 꺼야 한다
 #define C_TITLE   "\033[1;36m"        // 제목 : 밝은 하늘색
 #define C_CURSOR  "\033[1;36m"        // 커서가 있는 칸의 괄호
@@ -57,7 +57,7 @@ typedef struct _Tile                 // 타일 정보 구조체
     TileType type;                   // 타일이 정답인지, 아닌지. (TILE_NORMAL, TILE_ANSWER)
 }Tile;
 
-typedef struct _Board                // 보드 정보 구조체 
+typedef struct _Board                // 보드 정보 구조체
 {
     int size;                        // 한 변 길이
     Tile** grid;                     // 판. 실행 중에 크기를 정하므로 동적 할당한다
@@ -65,7 +65,7 @@ typedef struct _Board                // 보드 정보 구조체
     int cursorY;                     // 행
 }Board;
 
-typedef struct _RankNode             // 랭킹 구조체 
+typedef struct _RankNode             // 랭킹 구조체
 {
     char name[NAME_LEN];             // 플레이어 이름
     int score;                       // 최종 점수
@@ -76,102 +76,105 @@ typedef struct _RankNode             // 랭킹 구조체
 struct termios original_terminal_setting; // 프로그램 시작 시의 터미널 설정 백업. 종료할 때 이 설정으로 되돌린다.
 
 /* -------------------- [1] 함수 원형 선언부 -------------------- */
-/* > 함수 나열 순서: 함수가 최초로 실행되는 순서                        */
+/* > 함수 나열 순서: 함수가 최초로 실행되는 순서              */
+/* > 단, 랭킹 함수 다섯 개는 SAVE_score 뒤에 한 묶음으로 모아 */
+/*   읽기 -> 추가 -> 쓰기 -> 표시 -> 해제 순으로 두었다.      */
 
-void SET_terminal(void); 
+void SET_terminal(void);
 // ㄴ터미널을 게임용으로 준비하는 함수
 //  > 1. 현재 설정을 original_terminal_setting 에 백업한다.
 //  > 2. 엔터 없이 키 하나씩 즉시 입력받도록 설정을 바꾸고 커서를 숨긴다.
 
-int SHOW_menu(void); 
+int SHOW_menu(void);
 // ㄴ시작 화면을 보여주고 선택을 받는 함수
 //  > 게임을 시작하면 1, 종료를 고르면 0 을 반환한다.
 
-int READ_key(void); 
+int READ_key(void);
 // ㄴ키 하나를 엔터 없이 즉시 입력받아 코드로 반환하는 함수
 //  > 1바이트를 읽어 그 문자를 반환하고, 읽기에 실패하면 -1 을 반환한다.
 
-RankNode* LOAD_ranking(void); 
-// ㄴ랭킹 파일을 읽어 연결 리스트로 만드는 함수
-//  > 파일이 없으면(첫 실행이면) NULL 을 반환한다.
-
-void SHOW_ranking(const RankNode* head); 
-// ㄴ랭킹을 화면에 보여주고 아무 키나 기다리는 함수
-
-void FREE_ranking(RankNode* head); 
-// ㄴ랭킹 리스트의 노드를 전부 반납하는 함수
-
-void PLAY_game(int* outScore, int* outRound); 
+void PLAY_game(int* outScore, int* outRound);
 // ㄴ게임 한 판을 처음부터 끝까지 진행하는 함수
 //  > 끝났을 때의 점수와 도달 라운드를 인자로 받은 주소에 담아 준다.
 
-int CALC_size(int round); 
+int CALC_size(int round);
 // ㄴ라운드에 맞는 판 크기를 계산하는 함수.
 //  > 두 라운드마다 한 칸씩 커지며, MAX_SIZE 를 넘지 않는다.
 
-int CALC_answers(int round); 
+int CALC_answers(int round);
 // ㄴ라운드에 맞는 정답 타일 개수를 계산하는 함수
 
-int CREATE_BoardMemory(Board* b, int size); 
+int CREATE_BoardMemory(Board* b, int size);
 // ㄴ동적할당: size x size 판의 메모리를 확보하는 함수
 //  > 성공하면 1, 메모리가 부족하면 0 을 반환한다.
 
-void FREE_BoardMemory(Board* b); 
+void FREE_BoardMemory(Board* b);
 // ㄴ판에 쓴 메모리를 전부 반납하는 함수
 
-void RESET_board(Board* b); 
+void RESET_board(Board* b);
 // ㄴ판을 시작 상태로 초기화. 즉 모든 타일을 숨김
 
-void PLACE_answers(Board* b, int count); 
+void PLACE_answers(Board* b, int count);
 // ㄴ정답 타일을 무작위 위치에 count 개 배치하는 함수
 //  > 이미 정답인 칸이 뽑히면 버리고 다시 뽑아 중복을 막는다.
 
-void SHOW_answers(const Board* b, int seconds); 
+void SHOW_answers(const Board* b, int seconds);
 // ㄴ정답을 seconds 초 동안 보여준 뒤 숨기는 함수
 //  > 보여주는 동안 눌린 키는 전부 버린다.
 
-void DRAW_board(const Board* b, DrawMode mode); 
+void DRAW_board(const Board* b, DrawMode mode);
 // ㄴ판 전체를 화면에 출력하는 함수
 //  > mode 가 ANSWER_SHOW 면 정답 타일을 * 로 함께 표시한다.
 
-void SLEEP_ms(long ms); 
+void SLEEP_ms(long ms);
 // ㄴms 밀리초 동안 프로그램을 멈추는 함수
 //  > unistd.h 의 usleep 을 쓸 수 없으므로 time.h 의 nanosleep 으로 직접 만들었다.
 
-void FLIP_tile(Board* b); 
+void FLIP_tile(Board* b);
 // ㄴ커서가 있는 칸의 타일을 뒤집는 함수
 //  > 가려진 칸은 공개하고, 공개된 칸은 다시 가린다.
 
-void MOVE_cursor(Board* b, int key); 
+void MOVE_cursor(Board* b, int key);
 // ㄴ눌린 키에 따라 커서를 한 칸 옮기는 함수
 //  > 판 밖으로 나가는 이동은 무시한다.
 
-int isMATCH_board(const Board* b); 
+int isMATCH_board(const Board* b);
 // ㄴ플레이어가 뒤집은 칸과 정답 칸이 완전히 일치하는지 검사하는 함수
 //  > 일치하면 1, 하나라도 다르면 0 을 반환한다.
 
-void SHOW_result(const Board* b, int correct); 
+void SHOW_result(const Board* b, int correct);
 // ㄴ판정 결과와 정답 위치를 잠시 보여주는 함수
 
-void SHOW_gameover(int score, int round); 
+void SHOW_gameover(int score, int round);
 // ㄴ게임오버 화면을 보여주고 아무 키나 기다리는 함수
 
-void SAVE_score(int score, int round); 
+void SAVE_score(int score, int round);
 // ㄴ이번 판의 점수를 랭킹에 반영하고 보여주는 함수
 
-void INPUT_name(char* name); 
+void INPUT_name(char* name);
 // ㄴ이름을 한 글자씩 입력받아 인자로 받은 자리에 채우는 함수
 //  > 영문과 숫자만 NAME_LEN - 1 글자까지 받고, 아무것도 입력하지 않으면 "NONAME" 을 넣는다.
 
+RankNode* LOAD_ranking(void);
+// ㄴ랭킹 파일을 읽어 연결 리스트로 만드는 함수
+//  > 파일이 없으면(첫 실행이면) NULL 을 반환한다.
+
 RankNode* ADD_ranking(RankNode* head, const char* name, int score, int round);
+// ㄴ새 기록을 점수 순서에 맞는 자리에 끼워 넣는 함수
 //  > 점수 내림차순 자리에 끼워 넣고, 바뀔 수 있는 새 head 를 반환한다.
 //  > 반환값을 반드시 head 에 다시 대입해야 한다.
 
-void SAVE_ranking(const RankNode* head); 
+void SAVE_ranking(const RankNode* head);
 // ㄴ랭킹 리스트를 파일에 저장하는 함수
 //  > 상위 RANK_MAX 개만 쓰고, 기존 파일 내용은 지워진다.
 
-void RESTORE_terminal(void); 
+void SHOW_ranking(const RankNode* head);
+// ㄴ랭킹을 화면에 보여주고 아무 키나 기다리는 함수
+
+void FREE_ranking(RankNode* head);
+// ㄴ랭킹 리스트의 노드를 전부 반납하는 함수
+
+void RESTORE_terminal(void);
 // ㄴ터미널을 백업해 둔 원래 설정으로 되돌리는 함수
 
 /* ==================================================== */
@@ -256,7 +259,7 @@ int SHOW_menu(void)
     }
 }
 
-/*  --------------------  [5] 키 입력 함수  --------------------  */
+/* -------------------- [5] 키 입력 함수 -------------------- */
 int READ_key(void)
 {
     int c; // 읽은 1바이트. EOF 와 구분해야 하므로 char 가 아니라 int 로 받는다
@@ -270,97 +273,7 @@ int READ_key(void)
     return c;
 }
 
-/*  --------------------  [6] 랭킹 파일 읽기 함수  --------------------  */
-RankNode* LOAD_ranking(void) // 파일에서 값을 읽고, 노드를 만들어 노드에 값을 저장한 다음, 노드들을 연결하는 함수
-{
-    FILE* fp;
-    RankNode* head = NULL;   // 머리 노드
-    RankNode* tail = NULL;   // 꼬리 노드
-    RankNode* node;          // 새로 만들 노드
-    
-    char name[NAME_LEN];
-    int score, round;
-    
-    fp = fopen(RANK_FILE, "r");
-    
-    if (fp == NULL)          // 파일이 없는 경우
-        return NULL;
-    
-    while (fscanf(fp, "%11s %d %d", name, &score, &round) == 3) // 반복 조건: fscanf는 파일에서 성공적으로 읽은 값의 개수를 반환.
-    {
-        node = (RankNode*)malloc(sizeof(RankNode));             // 동적할당으로 새로 만들 노드 메모리 할당
-        
-        if (node == NULL)                                       // 동적할당 실패시 멈춤
-            break;
-        
-        strncpy(node -> name, name, NAME_LEN - 1);
-        node -> name[NAME_LEN - 1] = '\0';
-        node -> score = score;                                  // 파일에서 읽은 점수 대입
-        node -> round = round;                                  // 파일에서 읽은 라운드 대입
-        node -> next = NULL;                                    // 쓰레기값 말고 NULL 대입
-        
-        if (head == NULL)
-            head = node;                                        // 첫 노드
-        else
-            tail -> next = node;                                // 두 번째 이후
-        
-        tail = node;
-        
-    }
-    
-    fclose(fp);
-        
-    return head;
-}
-
-/* -------------------- [7] 랭킹 화면 표시 함수 -------------------- */
-void SHOW_ranking(const RankNode* head) // 헤드를 읽고, 헤드부터 연결된 노드들을 차례대로 읽어들여 값을 출력
-{
-    const RankNode* cur = head;   // 순회용 노드: 헤드 부터 시작
-    int rank = 1;
-    
-    printf(CLEAR_SCREEN);
-    printf("\n\n");
-    printf(C_TITLE "      R A N K I N G" C_RESET "\n\n\n");
-
-    if (head == NULL)
-        printf("      기록이 없습니다.\n");
-    
-    while (cur != NULL && rank <= RANK_MAX)
-    {
-        if (rank == 1)
-            printf(C_UP); // 1등만 노랑으로 강조한다
-
-        printf("      %d.  %-12s  %5d 점    라운드 %d" C_RESET "\n", rank, cur -> name, cur -> score, cur -> round);
-            // ㄴ1등이 아닐 때도 리셋을 찍지만, 색이 안 켜진 상태의 리셋은 아무 일도 하지 않는다.
-
-        cur = cur -> next;
-        rank = rank + 1;
-    }
-    
-    printf("\n\n      메뉴로 돌아가고 싶으면 아무 키나 누르세요.\n");
-
-    fflush(stdout);
-
-    tcflush(TILE_STDIN, TCIFLUSH);
-    READ_key();
-}
-
-/* -------------------- [8] 랭킹 리스트 해제 함수 -------------------- */
-void FREE_ranking(RankNode* head)
-{
-    RankNode* cur = head;
-    RankNode* next;      // 임시 보관용
-
-    while (cur != NULL)
-    {
-        next = cur -> next;   // 1 지우기 전에 다음 주소를 챙긴다
-        free(cur);            // 2 지운다
-        cur = next;           // 3 챙겨 둔 주소로 이동한다
-    }
-}
-
-/* -------------------- [9] 게임 한 판 진행 함수 -------------------- */
+/* -------------------- [6] 게임 한 판 진행 함수 -------------------- */
 void PLAY_game(int* outScore, int* outRound)
 {
     Board b;
@@ -435,7 +348,7 @@ void PLAY_game(int* outScore, int* outRound)
     *outRound = round;
 }
 
-/* -------------------- [10] 라운드별 판 크기 계산 함수 -------------------- */
+/* -------------------- [7] 라운드별 판 크기 계산 함수 -------------------- */
 int CALC_size(int round)
 {
     int size = SIZE + (round - 1) / 2;      // 두 라운드마다 한 칸씩 커진다
@@ -446,13 +359,13 @@ int CALC_size(int round)
     return size;
 }
 
-/* -------------------- [11] 라운드별 정답 개수 계산 함수 -------------------- */
+/* -------------------- [8] 라운드별 정답 개수 계산 함수 -------------------- */
 int CALC_answers(int round)
 {
     return SIZE + round / 2;                // 판이 커지는 라운드의 한 박자 뒤에 늘어난다
 }
 
-/* -------------------- [12] 보드 생성 함수 -------------------- */
+/* -------------------- [9] 보드 생성 함수 -------------------- */
 int CREATE_BoardMemory(Board* b, int size)
 {
     int y;
@@ -482,7 +395,7 @@ int CREATE_BoardMemory(Board* b, int size)
     return 1;
 }
 
-/*  -------------------- [13] 보드 해제 함수  -------------------- */
+/* -------------------- [10] 보드 해제 함수 -------------------- */
 void FREE_BoardMemory(Board* b)
 {
     int y;
@@ -498,7 +411,7 @@ void FREE_BoardMemory(Board* b)
     b -> grid = NULL;         // 반납한 주소를 실수로 다시 쓰지 않도록 지운다
 }
 
-/*  -------------------- [14] 보드 리셋 함수  -------------------- */
+/* -------------------- [11] 보드 리셋 함수 -------------------- */
 void RESET_board(Board* b)
 {
     int y, x;
@@ -516,7 +429,7 @@ void RESET_board(Board* b)
     b -> cursorY = 0;
 }
 
-/*  -------------------- [15] 정답 타일 배치 함수  -------------------- */
+/* -------------------- [12] 정답 타일 배치 함수 -------------------- */
 void PLACE_answers(Board* b, int count)
 {
     int placed = 0;                              // 지금까지 배치한 정답 타일의 개수
@@ -538,7 +451,7 @@ void PLACE_answers(Board* b, int count)
     }
 }
 
-/*  -------------------- [16] 시간 제한 동안 정답을 보여주는 함수  -------------------- */
+/* -------------------- [13] 시간 제한 동안 정답을 보여주는 함수 -------------------- */
 void SHOW_answers(const Board* b, int seconds)
 {
     int i;
@@ -550,7 +463,7 @@ void SHOW_answers(const Board* b, int seconds)
         // ㄴ정답 * 와 같은 초록을 쓴다. 지금 보이는 초록을 외우라는 뜻이 색으로 전달된다.
         fflush(stdout);
 
-        SLEEP_ms(1000); 
+        SLEEP_ms(1000);
         // ㄴ1초(1000밀리초) 동안 멈춘다
     }
 
@@ -558,7 +471,7 @@ void SHOW_answers(const Board* b, int seconds)
     // ㄴ기다리는 동안 눌린 키가 버퍼에 쌓여 있으므로 전부 버린다.
 }
 
-/*  -------------------- [17] 보드 그리기 함수  -------------------- */
+/* -------------------- [14] 보드 그리기 함수 -------------------- */
 void DRAW_board(const Board* b, DrawMode mode)
 {
     int y, x;
@@ -602,7 +515,7 @@ void DRAW_board(const Board* b, DrawMode mode)
     // ㄴ출력 내용이 화면에 즉시 나타나도록 버퍼를 밀어낸다.
 }
 
-/*  -------------------- [18] 시간 지연 함수  -------------------- */
+/* -------------------- [15] 시간 지연 함수 -------------------- */
 void SLEEP_ms(long ms)
 {
     struct timespec t;                      // 초와 나노초를 나눠 담는 구조체. time.h 에 정의되어 있다
@@ -613,7 +526,7 @@ void SLEEP_ms(long ms)
     nanosleep(&t, NULL);
 }
 
-/*  -------------------- [19] 타일 뒤집기 함수  -------------------- */
+/* -------------------- [16] 타일 뒤집기 함수 -------------------- */
 void FLIP_tile(Board* b)
 {
     Tile* t = &b -> grid[b -> cursorY][b -> cursorX]; // 커서가 가리키는 칸
@@ -624,7 +537,7 @@ void FLIP_tile(Board* b)
         t -> state = TILE_DOWN;
 }
 
-/*  -------------------- [20] 커서 이동 함수  -------------------- */
+/* -------------------- [17] 커서 이동 함수 -------------------- */
 void MOVE_cursor(Board* b, int key)
 {
     switch (key)
@@ -654,7 +567,7 @@ void MOVE_cursor(Board* b, int key)
     }
 }
 
-/* -------------------- [21] 정답 판정 함수 -------------------- */
+/* -------------------- [18] 정답 판정 함수 -------------------- */
 int isMATCH_board(const Board* b)
 {
     int y, x;
@@ -664,19 +577,19 @@ int isMATCH_board(const Board* b)
         for (x = 0; x < b -> size; x++)
         {
             if (b -> grid[y][x].state == TILE_UP && b -> grid[y][x].type == TILE_NORMAL)
-                return 0;     
+                return 0;
                 // ㄴ정답이 아닌 칸을 뒤집음
 
             if (b -> grid[y][x].state == TILE_DOWN && b -> grid[y][x].type == TILE_ANSWER)
-                return 0; 
-                // ㄴ정답인 칸을 뒤집지 않음 
+                return 0;
+                // ㄴ정답인 칸을 뒤집지 않음
         }
     }
 
     return 1;   // 모든 칸이 일치
 }
 
-/* -------------------- [22] 판정 결과 표시 함수 -------------------- */
+/* -------------------- [19] 판정 결과 표시 함수 -------------------- */
 void SHOW_result(const Board* b, int correct)
 {
     DRAW_board(b, ANSWER_SHOW);          // 정답 위치를 함께 보여준다. answer show 모드
@@ -693,7 +606,7 @@ void SHOW_result(const Board* b, int correct)
     tcflush(TILE_STDIN, TCIFLUSH);       // 그동안 눌린 키는 버린다
 }
 
-/* -------------------- [23] 게임오버 화면 함수 -------------------- */
+/* -------------------- [20] 게임오버 화면 함수 -------------------- */
 void SHOW_gameover(int score, int round)
 {
     printf(CLEAR_SCREEN);
@@ -710,7 +623,7 @@ void SHOW_gameover(int score, int round)
     READ_key();
 }
 
-/* -------------------- [24] 이번 판의 점수를 랭킹에 저장하는 함수 -------------------- */
+/* -------------------- [21] 이번 판의 점수를 랭킹에 저장하는 함수 -------------------- */
 void SAVE_score(int score, int round)
 {
     char name[NAME_LEN];                            // 이번 판 플레이어의 이름
@@ -725,7 +638,7 @@ void SAVE_score(int score, int round)
     FREE_ranking(head);                             // 5 반납한다
 }
 
-/* -------------------- [25] 이름 입력 함수 -------------------- */
+/* -------------------- [22] 이름 입력 함수 -------------------- */
 void INPUT_name(char* name)
 {
     int len = 0;       // 지금까지 입력한 글자 수
@@ -774,7 +687,50 @@ void INPUT_name(char* name)
         // ㄴ빈 이름을 그대로 저장하면 파일에 빈 칸이 생겨 다음 실행에서 랭킹이 깨진다.
 }
 
-/* -------------------- [26] 랭킹에 새 기록을 끼워 넣는 함수 -------------------- */
+/* -------------------- [23] 랭킹 파일 읽기 함수 -------------------- */
+RankNode* LOAD_ranking(void) // 파일에서 값을 읽고, 노드를 만들어 노드에 값을 저장한 다음, 노드들을 연결하는 함수
+{
+    FILE* fp;
+    RankNode* head = NULL;   // 머리 노드
+    RankNode* tail = NULL;   // 꼬리 노드
+    RankNode* node;          // 새로 만들 노드
+    
+    char name[NAME_LEN];
+    int score, round;
+    
+    fp = fopen(RANK_FILE, "r");
+    
+    if (fp == NULL)          // 파일이 없는 경우
+        return NULL;
+    
+    while (fscanf(fp, "%11s %d %d", name, &score, &round) == 3) // 반복 조건: fscanf는 파일에서 성공적으로 읽은 값의 개수를 반환.
+    {
+        node = (RankNode*)malloc(sizeof(RankNode));             // 동적할당으로 새로 만들 노드 메모리 할당
+        
+        if (node == NULL)                                       // 동적할당 실패시 멈춤
+            break;
+        
+        strncpy(node -> name, name, NAME_LEN - 1);
+        node -> name[NAME_LEN - 1] = '\0';
+        node -> score = score;                                  // 파일에서 읽은 점수 대입
+        node -> round = round;                                  // 파일에서 읽은 라운드 대입
+        node -> next = NULL;                                    // 쓰레기값 말고 NULL 대입
+        
+        if (head == NULL)
+            head = node;                                        // 첫 노드
+        else
+            tail -> next = node;                                // 두 번째 이후
+        
+        tail = node;
+        
+    }
+    
+    fclose(fp);
+        
+    return head;
+}
+
+/* -------------------- [24] 랭킹에 새 기록을 끼워 넣는 함수 -------------------- */
 RankNode* ADD_ranking(RankNode* head, const char* name, int score, int round)
 {
     RankNode* node;                                // 새로 만들 노드
@@ -809,7 +765,7 @@ RankNode* ADD_ranking(RankNode* head, const char* name, int score, int round)
     return head;                                   // head 는 안 바뀌었으므로 받은 것을 그대로 돌려준다
 }
 
-/*-------------------- [27] 랭킹 파일 저장 함수-------------------- */
+/* -------------------- [25] 랭킹 파일 저장 함수 -------------------- */
 void SAVE_ranking(const RankNode* head)
 {
     FILE* fp;
@@ -830,6 +786,53 @@ void SAVE_ranking(const RankNode* head)
     }
 
     fclose(fp); // 닫아야 실제로 파일에 써진다
+}
+
+/* -------------------- [26] 랭킹 화면 표시 함수 -------------------- */
+void SHOW_ranking(const RankNode* head) // 헤드를 읽고, 헤드부터 연결된 노드들을 차례대로 읽어들여 값을 출력
+{
+    const RankNode* cur = head;   // 순회용 노드: 헤드 부터 시작
+    int rank = 1;
+    
+    printf(CLEAR_SCREEN);
+    printf("\n\n");
+    printf(C_TITLE "      R A N K I N G" C_RESET "\n\n\n");
+
+    if (head == NULL)
+        printf("      기록이 없습니다.\n");
+    
+    while (cur != NULL && rank <= RANK_MAX)
+    {
+        if (rank == 1)
+            printf(C_UP); // 1등만 노랑으로 강조한다
+
+        printf("      %d.  %-12s  %5d 점    라운드 %d" C_RESET "\n", rank, cur -> name, cur -> score, cur -> round);
+            // ㄴ1등이 아닐 때도 리셋을 찍지만, 색이 안 켜진 상태의 리셋은 아무 일도 하지 않는다.
+
+        cur = cur -> next;
+        rank = rank + 1;
+    }
+    
+    printf("\n\n      메뉴로 돌아가고 싶으면 아무 키나 누르세요.\n");
+
+    fflush(stdout);
+
+    tcflush(TILE_STDIN, TCIFLUSH);
+    READ_key();
+}
+
+/* -------------------- [27] 랭킹 리스트 해제 함수 -------------------- */
+void FREE_ranking(RankNode* head)
+{
+    RankNode* cur = head;
+    RankNode* next;      // 임시 보관용
+
+    while (cur != NULL)
+    {
+        next = cur -> next;   // 1 지우기 전에 다음 주소를 챙긴다
+        free(cur);            // 2 지운다
+        cur = next;           // 3 챙겨 둔 주소로 이동한다
+    }
 }
 
 /* -------------------- [28] 터미널 복구 함수 -------------------- */
@@ -865,3 +868,4 @@ struct termios          // termios.h 에 이미 정의되어 있다
 5. 종료할 때 original_terminal_setting -> TILE_STDIN (원래대로 복구)
 
 */
+
