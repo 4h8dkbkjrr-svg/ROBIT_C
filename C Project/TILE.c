@@ -364,48 +364,48 @@ void FREE_ranking(RankNode* head)
 void PLAY_game(int* outScore, int* outRound)
 {
     Board b;
-    int key = 0;   // 마지막에 누른 키의 코드
-    int score = 0; // 지금까지 얻은 점수
-    int lives = 3; // 남은 목숨
-    int round = 1; // 현재 라운드
+    int key = 0;                         // 마지막에 누른 키의 코드
+    int score = 0;                       // 지금까지 얻은 점수
+    int lives = 3;                       // 남은 목숨
+    int round = 1;                       // 현재 라운드
     
-    int size = SIZE; // 첫 라운드 사이즈: 3
-    int answers = SIZE; // 첫 라운드 정답 개수: 3
+    int size = SIZE;                     // 첫 라운드 사이즈: 3
+    int answers = SIZE;                  // 첫 라운드 정답 개수: 3
 
     while (lives > 0 && key != KEY_QUIT) // 라운드 반복. 목숨이 다하거나 q 를 누르면 끝난다
     {
-        size = CALC_size(round); // 이번 라운드의 판 크기를 구한다. 라운드가 오를수록 커진다
-        answers = CALC_answers(round); // 이번 라운드의 정답 개수를 구한다. 정답도 함께 늘어난다
+        size = CALC_size(round);         // 이번 라운드의 판 크기를 구한다. 라운드가 오를수록 커진다
+        answers = CALC_answers(round);   // 이번 라운드의 정답 개수를 구한다. 정답도 함께 늘어난다
 
         
         if (CREATE_BoardMemory(&b, size) == 0) // 메모리를 못 얻으면 게임을 계속할 수 없다
             break;
         
-        RESET_board(&b); // 지난 라운드의 흔적을 지운다
-        PLACE_answers(&b, answers); // 이번 라운드의 정답 개수만큼 배치한다
+        RESET_board(&b);                  // 지난 라운드의 흔적을 지운다
+        PLACE_answers(&b, answers);       // 이번 라운드의 정답 개수만큼 배치한다
 
-        SHOW_answers(&b, 3); // 정답을 3초 동안 보여준 뒤 숨긴다
+        SHOW_answers(&b, 3);              // 정답을 3초 동안 보여준 뒤 숨긴다
 
-        key = 0; // 지난 라운드에서 누른 엔터가 남아 있으면 안 되므로 초기화한다
+        key = 0;                          // 지난 라운드에서 누른 엔터가 남아 있으면 안 되므로 초기화한다
 
         while (key != KEY_ENTER && key != KEY_QUIT) // 한 라운드의 입력을 받는다
         {
-            DRAW_board(&b, ANSWER_HIDE); // 1 현재 상태를 그린다
+            DRAW_board(&b, ANSWER_HIDE);  // 1 현재 상태를 그린다
             printf(C_INFO "\n  라운드 %d (%dx%d)   점수 %d   목숨 " C_RESET C_FAIL "%d" C_RESET,
                    round, size, size, score, lives);
                 // ㄴ목숨만 빨강으로 띄운다. 줄어드는 것이 눈에 들어와야 하는 값이다.
             fflush(stdout);
 
-            key = READ_key(); // 2 키를 누를 때까지 기다린다
+            key = READ_key();             // 2 키를 누를 때까지 기다린다
 
-            switch (key) // 3 받은 키에 따라 상태를 바꾼다
+            switch (key)                  // 3 받은 키에 따라 상태를 바꾼다
             {
                 case KEY_SPACE:
-                    FLIP_tile(&b); // 커서가 있는 칸을 뒤집는다
+                    FLIP_tile(&b);        // 커서가 있는 칸을 뒤집는다
                     break;
 
                 case KEY_ENTER:
-                    break; // 제출. 아무것도 안 해도 이 반복문의 조건이 거짓이 된다
+                    break;                // 제출. 아무것도 안 해도 이 반복문의 조건이 거짓이 된다
 
                 default:
                     MOVE_cursor(&b, key); // 그 밖의 키는 커서 이동으로 넘긴다
@@ -423,45 +423,45 @@ void PLAY_game(int* outScore, int* outRound)
             }
             else
             {
-                lives--; // 라운드는 그대로 두고 목숨만 깎는다
+                lives--;                    // 라운드는 그대로 두고 목숨만 깎는다
                 SHOW_result(&b, 0);
             }
         }
         
-        FREE_BoardMemory(&b); // 이번 라운드에 쓴 메모리를 반납한다
+        FREE_BoardMemory(&b);               // 이번 라운드에 쓴 메모리를 반납한다
     }
 
-    *outScore = score; // 결과를 부른 쪽에 전달한다
+    *outScore = score;                      // 결과를 부른 쪽에 전달한다
     *outRound = round;
 }
 
-/* ---------- [10] 라운드별 판 크기 계산 함수 ---------- */
+/* -------------------- [10] 라운드별 판 크기 계산 함수 -------------------- */
 int CALC_size(int round)
 {
-    int size = SIZE + (round - 1) / 2; // 두 라운드마다 한 칸씩 커진다
+    int size = SIZE + (round - 1) / 2;      // 두 라운드마다 한 칸씩 커진다
 
-    if (size > MAX_SIZE) // 아무리 커져도 MAX_SIZE 를 넘지 않는다
+    if (size > MAX_SIZE)                    // 아무리 커져도 MAX_SIZE 를 넘지 않는다
         size = MAX_SIZE;
 
     return size;
 }
 
-/* ---------- [11] 라운드별 정답 개수 계산 함수 ---------- */
+/* -------------------- [11] 라운드별 정답 개수 계산 함수 -------------------- */
 int CALC_answers(int round)
 {
-    return SIZE + round / 2; // 판이 커지는 라운드의 한 박자 뒤에 늘어난다
+    return SIZE + round / 2;                // 판이 커지는 라운드의 한 박자 뒤에 늘어난다
 }
 
-/* ---------- [12] 보드 생성 함수 ---------- */
+/* -------------------- [12] 보드 생성 함수 -------------------- */
 int CREATE_BoardMemory(Board* b, int size)
 {
     int y;
 
     b -> size = size;
 
-    b -> grid = (Tile**)malloc(sizeof(Tile*) * size); // 행 포인터를 size 개 담을 자리
+    b -> grid = (Tile**)malloc(sizeof(Tile*) * size);      // 행 포인터를 size 개 담을 자리
 
-    if (b -> grid == NULL) // 메모리가 부족하면 여기서 포기한다
+    if (b -> grid == NULL)                                 // 메모리가 부족하면 여기서 포기한다
         return 0;
 
     for (y = 0; y < size; y++)
@@ -474,7 +474,7 @@ int CREATE_BoardMemory(Board* b, int size)
 
         if (b -> grid[y] == NULL)
         {
-            FREE_BoardMemory(b); // 지금까지 잡아 둔 것을 전부 반납하고 포기한다
+            FREE_BoardMemory(b);                           // 지금까지 잡아 둔 것을 전부 반납하고 포기한다
             return 0;
         }
     }
@@ -482,20 +482,20 @@ int CREATE_BoardMemory(Board* b, int size)
     return 1;
 }
 
-/* ---------- [13] 보드 해제 함수 ---------- */
+/*  -------------------- [13] 보드 해제 함수  -------------------- */
 void FREE_BoardMemory(Board* b)
 {
     int y;
 
-    if (b -> grid == NULL) // 이미 반납했거나 잡은 적이 없으면 할 일이 없다
+    if (b -> grid == NULL)    // 이미 반납했거나 잡은 적이 없으면 할 일이 없다
         return;
 
     for (y = 0; y < b -> size; y++)
-        free(b -> grid[y]); // 각 행을 먼저 반납한다
+        free(b -> grid[y]);   // 각 행을 먼저 반납한다
 
-    free(b -> grid); // 행 포인터 배열은 나중에 반납한다
+    free(b -> grid);          // 행 포인터 배열은 나중에 반납한다
 
-    b -> grid = NULL; // 반납한 주소를 실수로 다시 쓰지 않도록 지운다
+    b -> grid = NULL;         // 반납한 주소를 실수로 다시 쓰지 않도록 지운다
 }
 
 /* ---------- [14] 보드 리셋 함수 ---------- */
