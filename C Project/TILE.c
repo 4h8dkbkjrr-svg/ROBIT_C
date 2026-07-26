@@ -7,42 +7,42 @@
 
 #define _CRT_SECURE_NO_WARNINGS
 
-#include <stdio.h>    // printf, getchar, 파일 입출력, setvbuf
-#include <string.h>   // strncpy, strcpy (이름 문자열을 다루기 위해 필요)
-#include <stdlib.h>   // rand, srand (정답 타일을 무작위로 고르기 위해 필요)
-#include <time.h>     // time (난수 씨드), nanosleep (시간 지연)
-
+/* -------------------- 라이브러리 -------------------- */
+#include <stdio.h>    
+#include <string.h>   
+#include <stdlib.h>   
+#include <time.h>     
 #include <termios.h>  // struct termios, tcgetattr, tcsetattr (터미널 입력 방식을 제어)
 
-#define TILE_STDIN 0 // 표준 입력의 파일 번호. 0/1/2 는 커널이 정한 약속이고,
-                     // tcgetattr 등은 int 하나를 받으므로 직접 정의해 쓴다
+/* -------------------- define -------------------- */
+#define TILE_STDIN 0
+#define SIZE 3                        // 시작할 때의 판 크기
+#define MAX_SIZE 5                    // 판이 커질 수 있는 최대 크기
+#define RANK_FILE "ranking.txt"       // 랭킹을 저장할 파일 이름
+#define NAME_LEN 12                   // 이름 배열의 크기 (널 문자 포함)
+#define RANK_MAX 5                    // 화면에 보여줄 순위의 개수
 
-#define SIZE 3 // 시작할 때의 판 크기
-#define MAX_SIZE 5 // 판이 커질 수 있는 최대 크기
+/* -------------------- ANSI 이스케이프 문자열 -------------------- */
+/* > 화면에 출력하면 터미널이 글자가 아니라 명령으로 해석한다.                */
+#define CLEAR_SCREEN "\033[2J\033[H"  // 화면을 모두 지우고 커서를 좌상단으로 옮긴다
+#define HIDE_CURSOR  "\033[?25l"      // 터미널의 깜빡이는 커서를 숨긴다
+#define SHOW_CURSOR  "\033[?25h"      // 숨긴 커서를 다시 보이게 한다
 
-#define RANK_FILE "ranking.txt" // 랭킹을 저장할 파일 이름
-#define NAME_LEN 12 // 이름 배열의 크기 (널 문자 포함)
-#define RANK_MAX 5 // 화면에 보여줄 순위의 개수
+/* -------------------- ANSI 색상 코드 -------------------- */
+/* > 위의 CLEAR_SCREEN 과 같은 종류이며, 글자의 색과 굵기를 바꾼다.
+#define C_RESET   "\033[0m"           // 색을 원래대로 되돌린다. 색을 켰으면 반드시 짝을 맞춰 꺼야 한다
+#define C_TITLE   "\033[1;36m"        // 제목 : 밝은 하늘색
+#define C_CURSOR  "\033[1;36m"        // 커서가 있는 칸의 괄호
+#define C_ANSWER  "\033[1;32m"        // 정답 타일 * : 초록
+#define C_UP      "\033[1;33m"        // 내가 뒤집은 타일 0 : 노랑
+#define C_OK      "\033[1;32m"        // 성공 메시지
+#define C_FAIL    "\033[1;31m"        // 실패 메시지 : 빨강
+#define C_INFO    "\033[2m"           // 조작 안내 : 흐리게. 눈이 판에 먼저 가도록 한다
 
-//  ANSI 이스케이프 문자열. 화면에 출력하면 터미널이 글자가 아니라 명령으로 해석한다.
-#define CLEAR_SCREEN "\033[2J\033[H" // 화면을 모두 지우고 커서를 좌상단으로 옮긴다
-#define HIDE_CURSOR  "\033[?25l" // 터미널의 깜빡이는 커서를 숨긴다
-#define SHOW_CURSOR  "\033[?25h" // 숨긴 커서를 다시 보이게 한다
-
-//  ANSI 색상 코드. 위의 CLEAR_SCREEN 과 같은 종류이며, 글자의 색과 굵기를 바꾼다.
-#define C_RESET   "\033[0m"    // 색을 원래대로 되돌린다. 색을 켰으면 반드시 짝을 맞춰 꺼야 한다
-#define C_TITLE   "\033[1;36m" // 제목 : 밝은 하늘색
-#define C_CURSOR  "\033[1;36m" // 커서가 있는 칸의 괄호
-#define C_ANSWER  "\033[1;32m" // 정답 타일 * : 초록
-#define C_UP      "\033[1;33m" // 내가 뒤집은 타일 0 : 노랑
-#define C_OK      "\033[1;32m" // 성공 메시지
-#define C_FAIL    "\033[1;31m" // 실패 메시지 : 빨강
-#define C_INFO    "\033[2m"    // 조작 안내 : 흐리게. 눈이 판에 먼저 가도록 한다
-
-typedef enum { TILE_DOWN, TILE_UP }TileState; // 타일 상태(UP: 뒤집어서 공개한 상태, DOWN: 미공개 상태)
-typedef enum { TILE_NORMAL, TILE_ANSWER }TileType; // 타일 종류(NORMAL: 빈 타일, ANSWER: 정답 타일)
-typedef enum { ANSWER_HIDE, ANSWER_SHOW }DrawMode; // 판을 그릴 때 정답을 보여줄지 여부
-
+/* -------------------- enum -------------------- */
+typedef enum { TILE_DOWN, TILE_UP }TileState;        // 타일 상태(UP: 뒤집어서 공개한 상태, DOWN: 미공개 상태)
+typedef enum { TILE_NORMAL, TILE_ANSWER }TileType;   // 타일 종류(NORMAL: 빈 타일, ANSWER: 정답 타일)
+typedef enum { ANSWER_HIDE, ANSWER_SHOW }DrawMode;   // 판을 그릴 때 정답을 보여줄지 여부
 enum
 {
     KEY_UP = 'w', KEY_DOWN = 's', KEY_LEFT = 'a', KEY_RIGHT = 'd',
@@ -50,34 +50,33 @@ enum
     KEY_BACKSPACE = 127 // 맥 터미널의 Delete 키가 보내는 값(아스키 DEL). 문자로 쓸 수 없어 숫자를 적는다
 };//  키 코드. 모든 키가 문자 하나이므로 아스키 값을 그대로 쓴다.
 
-typedef struct _Tile    //타일 정보
+/* -------------------- 구조체 -------------------- */
+typedef struct _Tile                 // 타일 정보 구조체
 {
-    TileState state; // 타일 상태 (TILE_DOWN, TILE_UP)
-    TileType type; // 타일이 정답인지, 아닌지. (TILE_NORMAL, TILE_ANSWER)
+    TileState state;                 // 타일 상태 (TILE_DOWN, TILE_UP)
+    TileType type;                   // 타일이 정답인지, 아닌지. (TILE_NORMAL, TILE_ANSWER)
 }Tile;
 
-typedef struct _Board    //보드 정보
+typedef struct _Board                // 보드 정보 구조체 
 {
-    int size; // 한 변 길이
-    Tile** grid; // 판. 실행 중에 크기를 정하므로 동적 할당한다
-    int cursorX; // 열
-    int cursorY; // 행
+    int size;                        // 한 변 길이
+    Tile** grid;                     // 판. 실행 중에 크기를 정하므로 동적 할당한다
+    int cursorX;                     // 열
+    int cursorY;                     // 행
 }Board;
 
-typedef struct _RankNode    // 랭킹 한 줄
+typedef struct _RankNode             // 랭킹 구조체 
 {
-    char name[NAME_LEN]; // 플레이어 이름
-    int score; // 최종 점수
-    int round; // 도달 라운드
-    struct _RankNode* next; // 다음 노드의 주소. 마지막 노드면 NULL
+    char name[NAME_LEN];             // 플레이어 이름
+    int score;                       // 최종 점수
+    int round;                       // 도달 라운드
+    struct _RankNode* next;          // 다음 노드의 주소. 마지막 노드면 NULL
 }RankNode;
 
 struct termios original_terminal_setting; // 프로그램 시작 시의 터미널 설정 백업. 종료할 때 이 설정으로 되돌린다.
 
-/* ---------- [1] 함수 원형 선언부 ---------- */
-
-//  아래 목록은 함수가 처음 실행되는 순서대로 늘어놓았다. 위에서 아래로 읽으면
-//  게임이 진행되는 순서가 그대로 보인다. 정의부도 같은 순서로 두었다.
+/* -------------------- [1] 함수 원형 선언부 -------------------- */
+/* > 함수 나열 순서: 함수가 최초로 실행되는 순서                        */
 
 void SET_terminal(void); 
 // ㄴ터미널을 게임용으로 준비하는 함수
@@ -175,53 +174,53 @@ void SAVE_ranking(const RankNode* head);
 void RESTORE_terminal(void); 
 // ㄴ터미널을 백업해 둔 원래 설정으로 되돌리는 함수
 
-/* ---------- [2] main 문 ---------- */
+/* ==================================================== */
+/* -------------------- [2] main 문 -------------------- */
 int main(void)
 {
-    int score = 0; // 점수 초기화
-    int round = 1; // 라운드 초기화
+    int score = 0;                   // 점수 초기화
+    int round = 1;                   // 라운드 초기화
 
     srand((unsigned int)time(NULL)); // 난수의 씨앗을 현재 시각으로 정한다.
 
-    SET_terminal(); // 터미널 세팅: 여기서부터 키가 엔터 없이 즉시 들어온다.
+    SET_terminal();                  // 터미널 세팅: 여기서부터 키가 엔터 없이 즉시 들어온다.
 
     while (SHOW_menu() == 1)
     {
         PLAY_game(&score, &round);
         SHOW_gameover(score, round);
-        SAVE_score(score, round); // 이름을 받아 랭킹에 반영하고 순위를 보여준다
+        SAVE_score(score, round);    // 이름을 받아 랭킹에 반영하고 순위를 보여준다
     }
 
-    RESTORE_terminal(); // 터미널을 원래대로 되돌린다. 빠뜨리면 종료 후 터미널이 먹통이 된다
+    RESTORE_terminal();              // 터미널을 원래대로 되돌린다. 빠뜨리면 종료 후 터미널이 먹통이 된다
     printf(CLEAR_SCREEN);
 
     return 0;
 }
 
-/* ---------- [3] 터미널 설정 함수 ---------- */
+/* -------------------- [3] 터미널 설정 함수 -------------------- */
 void SET_terminal(void)
 {
-    struct termios new_setting; // 설정을 조립할 작업용 사본
+    struct termios new_setting;                          // 설정을 조립할 작업용 사본
 
     setvbuf(stdin, NULL, _IONBF, 0);
-    // ㄴgetchar 가 키를 미리 여러 개 모아 두지 않게 한다. 모아 두면 그 키들은
-    //   tcflush 로 버릴 수 없어서, 기다리는 동안 눌린 키가 나중에 쏟아진다.
+    // ㄴgetchar 가 키를 미리 여러 개 모아 두지 않게 한다. 모아 두면 그 키들은 tcflush 로 버릴 수 없어서, 기다리는 동안 눌린 키가 나중에 쏟아진다.
 
-    tcgetattr(TILE_STDIN, &original_terminal_setting); // 현재 설정(TILE_STDIN)을 original_terminal_setting 으로 복사해 통째로 백업한다
-    new_setting = original_terminal_setting; // 백업본을 복사해 필요한 항목만 끈다
+    tcgetattr(TILE_STDIN, &original_terminal_setting);   // 현재 설정(TILE_STDIN)을 original_terminal_setting 으로 복사해 통째로 백업한다
+    new_setting = original_terminal_setting;             // 백업본을 복사해 필요한 항목만 끈다
 
     new_setting.c_lflag = new_setting.c_lflag & ~(ICANON | ECHO);
     // ㄴICANON(엔터까지 모아서 주기)과 ECHO(누른 키를 화면에 보여주기)를 끈다
 
-    new_setting.c_cc[VMIN] = 1; // 최소 1바이트가 들어오면 곧바로 read 함수를 끝낸다
-    new_setting.c_cc[VTIME] = 0; // 시간 제한은 두지 않는다
+    new_setting.c_cc[VMIN] = 1;                          // 최소 1바이트가 들어오면 곧바로 read 함수를 끝낸다
+    new_setting.c_cc[VTIME] = 0;                         // 시간 제한은 두지 않는다
 
-    tcsetattr(TILE_STDIN, TCSANOW, &new_setting); // 바꾼 설정(new_setting)을 지금 즉시(TCSANOW) 터미널(TILE_STDIN)에 적용한다
+    tcsetattr(TILE_STDIN, TCSANOW, &new_setting);        // 바꾼 설정(new_setting)을 지금 즉시(TCSANOW) 터미널(TILE_STDIN)에 적용한다
 
     printf(HIDE_CURSOR);
 }
 
-/* ---------- [4] 시작 화면 함수 ---------- */
+/* -------------------- [4] 시작 화면 함수 -------------------- */
 int SHOW_menu(void)
 {
     int key;
@@ -361,11 +360,11 @@ void FREE_ranking(RankNode* head)
     }
 }
 
-/* ---------- [9] 게임 한 판 진행 함수 ---------- */
+/* -------------------- [9] 게임 한 판 진행 함수 -------------------- */
 void PLAY_game(int* outScore, int* outRound)
 {
     Board b;
-    int key = 0; // 마지막에 누른 키의 코드
+    int key = 0;   // 마지막에 누른 키의 코드
     int score = 0; // 지금까지 얻은 점수
     int lives = 3; // 남은 목숨
     int round = 1; // 현재 라운드
