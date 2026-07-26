@@ -1,7 +1,7 @@
 # TILE GAME
 ## 실행 환경
 
-- MacO
+- MacOS
 
 ## 실행 방법
 
