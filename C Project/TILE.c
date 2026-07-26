@@ -256,7 +256,7 @@ int SHOW_menu(void)
     }
 }
 
-/* ---------- [5] 키 입력 함수 ---------- */
+/*  --------------------  [5] 키 입력 함수  --------------------  */
 int READ_key(void)
 {
     int c; // 읽은 1바이트. EOF 와 구분해야 하므로 char 가 아니라 int 로 받는다
@@ -270,39 +270,39 @@ int READ_key(void)
     return c;
 }
 
-/* ---------- [6] 랭킹 파일 읽기 함수 ---------- */
+/*  --------------------  [6] 랭킹 파일 읽기 함수  --------------------  */
 RankNode* LOAD_ranking(void) // 파일에서 값을 읽고, 노드를 만들어 노드에 값을 저장한 다음, 노드들을 연결하는 함수
 {
     FILE* fp;
-    RankNode* head = NULL; // 머리 노드
-    RankNode* tail = NULL; // 꼬리 노드
-    RankNode* node;        // 새로 만들 노드
+    RankNode* head = NULL;   // 머리 노드
+    RankNode* tail = NULL;   // 꼬리 노드
+    RankNode* node;          // 새로 만들 노드
     
     char name[NAME_LEN];
     int score, round;
     
     fp = fopen(RANK_FILE, "r");
     
-    if (fp == NULL) // 파일이 없는 경우
+    if (fp == NULL)          // 파일이 없는 경우
         return NULL;
     
     while (fscanf(fp, "%11s %d %d", name, &score, &round) == 3) // 반복 조건: fscanf는 파일에서 성공적으로 읽은 값의 개수를 반환.
     {
-        node = (RankNode*)malloc(sizeof(RankNode)); // 동적할당으로 새로 만들 노드 메모리 할당
+        node = (RankNode*)malloc(sizeof(RankNode));             // 동적할당으로 새로 만들 노드 메모리 할당
         
-        if (node == NULL) // 동적할당 실패시 멈춤
+        if (node == NULL)                                       // 동적할당 실패시 멈춤
             break;
         
         strncpy(node -> name, name, NAME_LEN - 1);
         node -> name[NAME_LEN - 1] = '\0';
-        node -> score = score; // 파일에서 읽은 점수 대입
-        node -> round = round; // 파일에서 읽은 라운드 대입
-        node -> next = NULL;   // 쓰레기값 말고 NULL 대입
+        node -> score = score;                                  // 파일에서 읽은 점수 대입
+        node -> round = round;                                  // 파일에서 읽은 라운드 대입
+        node -> next = NULL;                                    // 쓰레기값 말고 NULL 대입
         
         if (head == NULL)
-            head = node;        // 첫 노드
+            head = node;                                        // 첫 노드
         else
-            tail -> next = node;  // 두 번째 이후
+            tail -> next = node;                                // 두 번째 이후
         
         tail = node;
         
@@ -313,7 +313,7 @@ RankNode* LOAD_ranking(void) // 파일에서 값을 읽고, 노드를 만들어 
     return head;
 }
 
-/* ---------- [7] 랭킹 화면 표시 함수 ---------- */
+/* -------------------- [7] 랭킹 화면 표시 함수 -------------------- */
 void SHOW_ranking(const RankNode* head) // 헤드를 읽고, 헤드부터 연결된 노드들을 차례대로 읽어들여 값을 출력
 {
     const RankNode* cur = head;   // 순회용 노드: 헤드 부터 시작
@@ -346,7 +346,7 @@ void SHOW_ranking(const RankNode* head) // 헤드를 읽고, 헤드부터 연결
     READ_key();
 }
 
-/* ---------- [8] 랭킹 리스트 해제 함수 ---------- */
+/* -------------------- [8] 랭킹 리스트 해제 함수 -------------------- */
 void FREE_ranking(RankNode* head)
 {
     RankNode* cur = head;
@@ -710,13 +710,13 @@ void SHOW_gameover(int score, int round)
     READ_key();
 }
 
-/* ---------- [24] 이번 판의 점수를 랭킹에 저장하는 함수 ---------- */
+/* -------------------- [24] 이번 판의 점수를 랭킹에 저장하는 함수 -------------------- */
 void SAVE_score(int score, int round)
 {
-    char name[NAME_LEN]; // 이번 판 플레이어의 이름
+    char name[NAME_LEN];                            // 이번 판 플레이어의 이름
     RankNode* head;
 
-    INPUT_name(name); // 0 이름을 입력받고
+    INPUT_name(name);                               // 0 이름을 입력받고
 
     head = LOAD_ranking();                          // 1 지금까지의 기록을 읽고
     head = ADD_ranking(head, name, score, round);   // 2 이번 기록을 끼워 넣고
@@ -725,13 +725,13 @@ void SAVE_score(int score, int round)
     FREE_ranking(head);                             // 5 반납한다
 }
 
-/* ---------- [25] 이름 입력 함수 ---------- */
+/* -------------------- [25] 이름 입력 함수 -------------------- */
 void INPUT_name(char* name)
 {
-    int len = 0; // 지금까지 입력한 글자 수
+    int len = 0;       // 지금까지 입력한 글자 수
     int key;
 
-    name[0] = '\0'; // 빈 문자열로 시작한다
+    name[0] = '\0';    // 빈 문자열로 시작한다
 
     while (1)
     {
@@ -747,42 +747,42 @@ void INPUT_name(char* name)
 
         key = READ_key();
 
-        if (key == KEY_ENTER || key == -1) // 입력을 끝낸다. -1 은 입력이 끊긴 경우다
+        if (key == KEY_ENTER || key == -1)     // 입력을 끝낸다. -1 은 입력이 끊긴 경우다
             break;
 
-        if (key == KEY_BACKSPACE || key == 8) // 마지막 글자를 지운다
+        if (key == KEY_BACKSPACE || key == 8)  // 마지막 글자를 지운다
         {
-            if (len > 0) // 빈 상태에서 더 지우면 배열 앞으로 벗어난다
+            if (len > 0)                       // 빈 상태에서 더 지우면 배열 앞으로 벗어난다
             {
                 len--;
-                name[len] = '\0'; // 글자를 지우는 것이 아니라 끝 표시를 앞으로 당긴다
+                name[len] = '\0';              // 글자를 지우는 것이 아니라 끝 표시를 앞으로 당긴다
             }
         }
         else if (key > ' ' && key < 127 && len < NAME_LEN - 1)
         {
             // ㄴ공백(32)과 제어 문자를 막는다. 이름에 공백이 들어가면 파일 형식이 깨진다.
-            //  ㄴ한글은 1바이트로 읽으면 음수가 되므로 여기서 함께 걸러진다.
+            // ㄴ한글은 1바이트로 읽으면 음수가 되므로 여기서 함께 걸러진다.
 
-            name[len] = (char)key; // 글자를 뒤에 붙인다
+            name[len] = (char)key;             // 글자를 뒤에 붙인다
             len++;
-            name[len] = '\0';      // 새 끝에 널을 다시 찍는다
+            name[len] = '\0';                  // 새 끝에 널을 다시 찍는다
         }
     }
 
-    if (name[0] == '\0') // 아무것도 입력하지 않았다면 기본 이름을 쓴다
+    if (name[0] == '\0')                       // 아무것도 입력하지 않았다면 기본 이름을 쓴다
         strcpy(name, "NONAME");
         // ㄴ빈 이름을 그대로 저장하면 파일에 빈 칸이 생겨 다음 실행에서 랭킹이 깨진다.
 }
 
-/* ---------- [26] 랭킹에 새 기록을 끼워 넣는 함수 ---------- */
+/* -------------------- [26] 랭킹에 새 기록을 끼워 넣는 함수 -------------------- */
 RankNode* ADD_ranking(RankNode* head, const char* name, int score, int round)
 {
-    RankNode* node; // 새로 만들 노드
-    RankNode* cur;  // 들어갈 자리를 찾아다닐 노드
+    RankNode* node;                                // 새로 만들 노드
+    RankNode* cur;                                 // 들어갈 자리를 찾아다닐 노드
 
     node = (RankNode*)malloc(sizeof(RankNode));
 
-    if (node == NULL) // 메모리를 못 얻으면 원래 리스트를 그대로 돌려준다
+    if (node == NULL)                              // 메모리를 못 얻으면 원래 리스트를 그대로 돌려준다
         return head;
 
     strncpy(node -> name, name, NAME_LEN - 1);
@@ -791,10 +791,10 @@ RankNode* ADD_ranking(RankNode* head, const char* name, int score, int round)
     node -> round = round;
     node -> next = NULL;
 
-    if (head == NULL || score > head -> score) // 첫 기록이거나 1등인 경우
+    if (head == NULL || score > head -> score)     // 첫 기록이거나 1등인 경우
     {
-        node -> next = head; // 원래 1등이 내 뒤로 온다. 비어 있었다면 NULL 이 들어간다
-        return node;         // 새 노드가 새 head 다
+        node -> next = head;                       // 원래 1등이 내 뒤로 온다. 비어 있었다면 NULL 이 들어간다
+        return node;                               // 새 노드가 새 head 다
     }
 
     cur = head;
@@ -803,25 +803,25 @@ RankNode* ADD_ranking(RankNode* head, const char* name, int score, int round)
         cur = cur -> next;
         // ㄴ내 점수보다 높거나 같은 노드를 지나친다. 멈춘 자리가 내 바로 앞 노드다.
 
-    node -> next = cur -> next; // 내 뒤를 먼저 잇는다
-    cur -> next = node;         // 그 다음에 앞을 잇는다
+    node -> next = cur -> next;                    // 내 뒤를 먼저 잇는다
+    cur -> next = node;                            // 그 다음에 앞을 잇는다
 
-    return head; // head 는 안 바뀌었으므로 받은 것을 그대로 돌려준다
+    return head;                                   // head 는 안 바뀌었으므로 받은 것을 그대로 돌려준다
 }
 
-/* ---------- [27] 랭킹 파일 저장 함수 ---------- */
+/*-------------------- [27] 랭킹 파일 저장 함수-------------------- */
 void SAVE_ranking(const RankNode* head)
 {
     FILE* fp;
     const RankNode* cur = head;
-    int count = 0; // 지금까지 쓴 줄 수
+    int count = 0;                                 // 지금까지 쓴 줄 수
 
-    fp = fopen(RANK_FILE, "w"); // 쓰기 모드. 파일이 없으면 만들고, 있으면 내용을 전부 지운다
+    fp = fopen(RANK_FILE, "w");                    // 쓰기 모드. 파일이 없으면 만들고, 있으면 내용을 전부 지운다
 
-    if (fp == NULL) // 쓸 수 없어도 게임은 계속되어야 하므로 조용히 돌아간다
+    if (fp == NULL)                                // 쓸 수 없어도 게임은 계속되어야 하므로 조용히 돌아간다
         return;
 
-    while (cur != NULL && count < RANK_MAX) // 상위 RANK_MAX 개만 남긴다
+    while (cur != NULL && count < RANK_MAX)        // 상위 RANK_MAX 개만 남긴다
     {
         fprintf(fp, "%s %d %d\n", cur -> name, cur -> score, cur -> round);
 
@@ -832,10 +832,10 @@ void SAVE_ranking(const RankNode* head)
     fclose(fp); // 닫아야 실제로 파일에 써진다
 }
 
-/* ---------- [28] 터미널 복구 함수 ---------- */
+/* -------------------- [28] 터미널 복구 함수 -------------------- */
 void RESTORE_terminal(void)
 {
-    printf(C_RESET); // 색을 켠 채로 끝나면 종료 후에도 터미널 글자색이 그대로 남는다
+    printf(C_RESET);                         // 색을 켠 채로 끝나면 종료 후에도 터미널 글자색이 그대로 남는다
     printf(SHOW_CURSOR);
 
     tcsetattr(TILE_STDIN, TCSANOW, &original_terminal_setting);
