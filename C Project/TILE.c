@@ -82,51 +82,101 @@ struct termios original_terminal_setting; // 프로그램 시작 시의 터미�
 //  아래 목록은 함수가 처음 실행되는 순서대로 늘어놓았다. 위에서 아래로 읽으면
 //  게임이 진행되는 순서가 그대로 보인다. 정의부도 같은 순서로 두었다.
 
-void SET_terminal(void); // 터미널을 게임용으로 준비하는 함수
+void SET_terminal(void); 
+// ㄴ터미널을 게임용으로 준비하는 함수
 //  > 1. 현재 설정을 original_terminal_setting 에 백업한다.
 //  > 2. 엔터 없이 키 하나씩 즉시 입력받도록 설정을 바꾸고 커서를 숨긴다.
-int SHOW_menu(void); // 시작 화면을 보여주고 선택을 받는 함수
+
+int SHOW_menu(void); 
+// ㄴ시작 화면을 보여주고 선택을 받는 함수
 //  > 게임을 시작하면 1, 종료를 고르면 0 을 반환한다.
-int READ_key(void); // 키 하나를 엔터 없이 즉시 입력받아 코드로 반환하는 함수
+
+int READ_key(void); 
+// ㄴ키 하나를 엔터 없이 즉시 입력받아 코드로 반환하는 함수
 //  > 1바이트를 읽어 그 문자를 반환하고, 읽기에 실패하면 -1 을 반환한다.
-RankNode* LOAD_ranking(void); // 랭킹 파일을 읽어 연결 리스트로 만드는 함수
+
+RankNode* LOAD_ranking(void); 
+// ㄴ랭킹 파일을 읽어 연결 리스트로 만드는 함수
 //  > 파일이 없으면(첫 실행이면) NULL 을 반환한다.
-void SHOW_ranking(const RankNode* head); // 랭킹을 화면에 보여주고 아무 키나 기다리는 함수
-void FREE_ranking(RankNode* head); // 랭킹 리스트의 노드를 전부 반납하는 함수
-void PLAY_game(int* outScore, int* outRound); // 게임 한 판을 처음부터 끝까지 진행하는 함수
+
+void SHOW_ranking(const RankNode* head); 
+// ㄴ랭킹을 화면에 보여주고 아무 키나 기다리는 함수
+
+void FREE_ranking(RankNode* head); 
+// ㄴ랭킹 리스트의 노드를 전부 반납하는 함수
+
+void PLAY_game(int* outScore, int* outRound); 
+// ㄴ게임 한 판을 처음부터 끝까지 진행하는 함수
 //  > 끝났을 때의 점수와 도달 라운드를 인자로 받은 주소에 담아 준다.
-int CALC_size(int round); // 라운드에 맞는 판 크기를 계산하는 함수
+
+int CALC_size(int round); 
+// ㄴ라운드에 맞는 판 크기를 계산하는 함수.
 //  > 두 라운드마다 한 칸씩 커지며, MAX_SIZE 를 넘지 않는다.
-int CALC_answers(int round); // 라운드에 맞는 정답 타일 개수를 계산하는 함수
-int CREATE_BoardMemory(Board* b, int size); // 동적할당: size x size 판의 메모리를 확보하는 함수
+
+int CALC_answers(int round); 
+// ㄴ라운드에 맞는 정답 타일 개수를 계산하는 함수
+
+int CREATE_BoardMemory(Board* b, int size); 
+// ㄴ동적할당: size x size 판의 메모리를 확보하는 함수
 //  > 성공하면 1, 메모리가 부족하면 0 을 반환한다.
-void FREE_BoardMemory(Board* b); // 판에 쓴 메모리를 전부 반납하는 함수
-void RESET_board(Board* b); // 판을 시작 상태로 초기화. 즉 모든 타일을 숨김
-void PLACE_answers(Board* b, int count); // 정답 타일을 무작위 위치에 count 개 배치하는 함수
+
+void FREE_BoardMemory(Board* b); 
+// ㄴ판에 쓴 메모리를 전부 반납하는 함수
+
+void RESET_board(Board* b); 
+// ㄴ판을 시작 상태로 초기화. 즉 모든 타일을 숨김
+
+void PLACE_answers(Board* b, int count); 
+// ㄴ정답 타일을 무작위 위치에 count 개 배치하는 함수
 //  > 이미 정답인 칸이 뽑히면 버리고 다시 뽑아 중복을 막는다.
-void SHOW_answers(const Board* b, int seconds); // 정답을 seconds 초 동안 보여준 뒤 숨기는 함수
+
+void SHOW_answers(const Board* b, int seconds); 
+// ㄴ정답을 seconds 초 동안 보여준 뒤 숨기는 함수
 //  > 보여주는 동안 눌린 키는 전부 버린다.
-void DRAW_board(const Board* b, DrawMode mode); // 판 전체를 화면에 출력하는 함수
+
+void DRAW_board(const Board* b, DrawMode mode); 
+// ㄴ판 전체를 화면에 출력하는 함수
 //  > mode 가 ANSWER_SHOW 면 정답 타일을 * 로 함께 표시한다.
-void SLEEP_ms(long ms); // ms 밀리초 동안 프로그램을 멈추는 함수
+
+void SLEEP_ms(long ms); 
+// ㄴms 밀리초 동안 프로그램을 멈추는 함수
 //  > unistd.h 의 usleep 을 쓸 수 없으므로 time.h 의 nanosleep 으로 직접 만들었다.
-void FLIP_tile(Board* b); // 커서가 있는 칸의 타일을 뒤집는 함수
+
+void FLIP_tile(Board* b); 
+// ㄴ커서가 있는 칸의 타일을 뒤집는 함수
 //  > 가려진 칸은 공개하고, 공개된 칸은 다시 가린다.
-void MOVE_cursor(Board* b, int key); // 눌린 키에 따라 커서를 한 칸 옮기는 함수
+
+void MOVE_cursor(Board* b, int key); 
+// ㄴ눌린 키에 따라 커서를 한 칸 옮기는 함수
 //  > 판 밖으로 나가는 이동은 무시한다.
-int isMATCH_board(const Board* b); // 플레이어가 뒤집은 칸과 정답 칸이 완전히 일치하는지 검사하는 함수
+
+int isMATCH_board(const Board* b); 
+// ㄴ플레이어가 뒤집은 칸과 정답 칸이 완전히 일치하는지 검사하는 함수
 //  > 일치하면 1, 하나라도 다르면 0 을 반환한다.
-void SHOW_result(const Board* b, int correct); // 판정 결과와 정답 위치를 잠시 보여주는 함수
-void SHOW_gameover(int score, int round); // 게임오버 화면을 보여주고 아무 키나 기다리는 함수
-void SAVE_score(int score, int round); // 이번 판의 점수를 랭킹에 반영하고 보여주는 함수
-void INPUT_name(char* name); // 이름을 한 글자씩 입력받아 인자로 받은 자리에 채우는 함수
+
+void SHOW_result(const Board* b, int correct); 
+// ㄴ판정 결과와 정답 위치를 잠시 보여주는 함수
+
+void SHOW_gameover(int score, int round); 
+// ㄴ게임오버 화면을 보여주고 아무 키나 기다리는 함수
+
+void SAVE_score(int score, int round); 
+// ㄴ이번 판의 점수를 랭킹에 반영하고 보여주는 함수
+
+void INPUT_name(char* name); 
+// ㄴ이름을 한 글자씩 입력받아 인자로 받은 자리에 채우는 함수
 //  > 영문과 숫자만 NAME_LEN - 1 글자까지 받고, 아무것도 입력하지 않으면 "NONAME" 을 넣는다.
+
 RankNode* ADD_ranking(RankNode* head, const char* name, int score, int round);
 //  > 점수 내림차순 자리에 끼워 넣고, 바뀔 수 있는 새 head 를 반환한다.
 //  > 반환값을 반드시 head 에 다시 대입해야 한다.
-void SAVE_ranking(const RankNode* head); // 랭킹 리스트를 파일에 저장하는 함수
+
+void SAVE_ranking(const RankNode* head); 
+// ㄴ랭킹 리스트를 파일에 저장하는 함수
 //  > 상위 RANK_MAX 개만 쓰고, 기존 파일 내용은 지워진다.
-void RESTORE_terminal(void); // 터미널을 백업해 둔 원래 설정으로 되돌리는 함수
+
+void RESTORE_terminal(void); 
+// ㄴ터미널을 백업해 둔 원래 설정으로 되돌리는 함수
 
 /* ---------- [2] main 문 ---------- */
 int main(void)
