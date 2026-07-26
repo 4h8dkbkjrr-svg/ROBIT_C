@@ -388,7 +388,7 @@ void PLAY_game(int* outScore, int* outRound)
 
         key = 0;                          // 지난 라운드에서 누른 엔터가 남아 있으면 안 되므로 초기화한다
 
-        while (key != KEY_ENTER && key != KEY_QUIT) // 한 라운드의 입력을 받는다
+        while (key != KEY_ENTER && key != KEY_QUIT) // 한 라운드의 입력을 받는다. 입력을 받을때마다 반복하는 구조
         {
             DRAW_board(&b, ANSWER_HIDE);  // 1 현재 상태를 그린다
             printf(C_INFO "\n  라운드 %d (%dx%d)   점수 %d   목숨 " C_RESET C_FAIL "%d" C_RESET,
@@ -498,7 +498,7 @@ void FREE_BoardMemory(Board* b)
     b -> grid = NULL;         // 반납한 주소를 실수로 다시 쓰지 않도록 지운다
 }
 
-/* ---------- [14] 보드 리셋 함수 ---------- */
+/*  -------------------- [14] 보드 리셋 함수  -------------------- */
 void RESET_board(Board* b)
 {
     int y, x;
@@ -512,17 +512,17 @@ void RESET_board(Board* b)
         }
     }
     
-    b -> cursorX = 0; // 커서를 왼쪽 위로 되돌린다
+    b -> cursorX = 0;                           // 커서를 왼쪽 위로 되돌린다
     b -> cursorY = 0;
 }
 
-/* ---------- [15] 정답 타일 배치 함수 ---------- */
+/*  -------------------- [15] 정답 타일 배치 함수  -------------------- */
 void PLACE_answers(Board* b, int count)
 {
-    int placed = 0; // 지금까지 배치한 정답 타일의 개수
+    int placed = 0;                              // 지금까지 배치한 정답 타일의 개수
     int y, x;
     
-    if (count > b -> size * b -> size) // 판의 칸 수보다 많이 배치할 수는 없다
+    if (count > b -> size * b -> size)           // 판의 칸 수보다 많이 배치할 수는 없다
         count = b -> size * b -> size;
     
     while (placed < count)
@@ -538,7 +538,7 @@ void PLACE_answers(Board* b, int count)
     }
 }
 
-/* ---------- [16] 시간 제한 동안 정답을 보여주는 함수 ---------- */
+/*  -------------------- [16] 시간 제한 동안 정답을 보여주는 함수  -------------------- */
 void SHOW_answers(const Board* b, int seconds)
 {
     int i;
@@ -547,24 +547,25 @@ void SHOW_answers(const Board* b, int seconds)
     {
         DRAW_board(b, ANSWER_SHOW);
         printf(C_ANSWER "\n\n  타일들을 기억하세요!  %d" C_RESET, i);
-            // ㄴ정답 * 와 같은 초록을 쓴다. 지금 보이는 초록을 외우라는 뜻이 색으로 전달된다.
+        // ㄴ정답 * 와 같은 초록을 쓴다. 지금 보이는 초록을 외우라는 뜻이 색으로 전달된다.
         fflush(stdout);
 
-        SLEEP_ms(1000); // 1초(1000밀리초) 동안 멈춘다
+        SLEEP_ms(1000); 
+        // ㄴ1초(1000밀리초) 동안 멈춘다
     }
 
     tcflush(TILE_STDIN, TCIFLUSH);
     // ㄴ기다리는 동안 눌린 키가 버퍼에 쌓여 있으므로 전부 버린다.
 }
 
-/* ---------- [17] 보드 그리기 함수 ---------- */
+/*  -------------------- [17] 보드 그리기 함수  -------------------- */
 void DRAW_board(const Board* b, DrawMode mode)
 {
     int y, x;
-    char face;  // 칸 안에 찍을 숫자
-    const char* color; // 그 글자에 입힐 색. face 와 짝을 이룬다
+    char face;                       // 칸 안에 찍을 숫자
+    const char* color;               // 그 글자에 입힐 색. face 와 짝을 이룬다
 
-    printf(CLEAR_SCREEN); // 화면 지우고 처음부터 다시 그리기
+    printf(CLEAR_SCREEN);            // 화면 지우고 처음부터 다시 그리기
     printf(C_TITLE "  TILE GAME " C_RESET "\n\n");
         
 
@@ -574,18 +575,18 @@ void DRAW_board(const Board* b, DrawMode mode)
         {
             if (mode == ANSWER_SHOW && b -> grid[y][x].type == TILE_ANSWER)
             {
-                face = '*'; // 정답 공개 모드이면서, 타일 타입이 정답이면 정답으로 출력한다.
+                face = '*';          // 정답 공개 모드이면서, 타일 타입이 정답이면 정답으로 출력한다.
                 color = C_ANSWER;
             }
             else if (b -> grid[y][x].state == TILE_UP)
             {
-                face = '0'; // 타일이 뒤집히면 0을 출력한다.
+                face = '0';          // 타일이 뒤집히면 0을 출력한다.
                 color = C_UP;
             }
             else
             {
                 face = ' ';
-                color = C_RESET; // 빈 칸은 색을 입힐 것이 없다
+                color = C_RESET;     // 빈 칸은 색을 입힐 것이 없다
             }
 
             if (y == b -> cursorY && x == b -> cursorX)
@@ -598,13 +599,13 @@ void DRAW_board(const Board* b, DrawMode mode)
     printf(C_INFO "\n w/a/s/d: 이동      스페이스: 뒤집기      엔터: 제출      q: 종료" C_RESET);
     
     fflush(stdout);
-        // ㄴ출력 내용이 화면에 즉시 나타나도록 버퍼를 밀어낸다.
+    // ㄴ출력 내용이 화면에 즉시 나타나도록 버퍼를 밀어낸다.
 }
 
-/* ---------- [18] 시간 지연 함수 ---------- */
+/*  -------------------- [18] 시간 지연 함수  -------------------- */
 void SLEEP_ms(long ms)
 {
-    struct timespec t; // 초와 나노초를 나눠 담는 구조체. time.h 에 정의되어 있다
+    struct timespec t;                      // 초와 나노초를 나눠 담는 구조체. time.h 에 정의되어 있다
 
     t.tv_sec  = ms / 1000;                  // 1000으로 나눈 몫이 초
     t.tv_nsec = (ms % 1000) * 1000000L;     // 나머지를 나노초로. 1밀리초 = 1000000나노초
@@ -612,7 +613,7 @@ void SLEEP_ms(long ms)
     nanosleep(&t, NULL);
 }
 
-/* ---------- [19] 타일 뒤집기 함수 ---------- */
+/*  -------------------- [19] 타일 뒤집기 함수  -------------------- */
 void FLIP_tile(Board* b)
 {
     Tile* t = &b -> grid[b -> cursorY][b -> cursorX]; // 커서가 가리키는 칸
@@ -623,37 +624,37 @@ void FLIP_tile(Board* b)
         t -> state = TILE_DOWN;
 }
 
-/* ---------- [20] 커서 이동 함수 ---------- */
+/*  -------------------- [20] 커서 이동 함수  -------------------- */
 void MOVE_cursor(Board* b, int key)
 {
     switch (key)
     {
         case KEY_UP:
             if (b -> cursorY > 0)
-                b -> cursorY--; // 위로 한칸 이동
+                b -> cursorY--;     // 위로 한칸 이동
             break;
 
         case KEY_DOWN:
             if (b -> cursorY < b -> size - 1)
-                b -> cursorY++; // 아래로 한칸 이동
+                b -> cursorY++;     // 아래로 한칸 이동
             break;
 
         case KEY_LEFT:
             if (b -> cursorX > 0)
-                b -> cursorX--; // 왼쪽으로 한칸 이동
+                b -> cursorX--;     // 왼쪽으로 한칸 이동
             break;
 
         case KEY_RIGHT:
             if (b -> cursorX < b -> size - 1)
-                b -> cursorX++; // 오른쪽으로 한칸 이동
+                b -> cursorX++;     // 오른쪽으로 한칸 이동
             break;
 
         default:
-            break; // 그 밖의 키는 무시
+            break;                  // 그 밖의 키는 무시
     }
 }
 
-/* ---------- [21] 정답 판정 함수 ---------- */
+/* -------------------- [21] 정답 판정 함수 -------------------- */
 int isMATCH_board(const Board* b)
 {
     int y, x;
@@ -663,20 +664,22 @@ int isMATCH_board(const Board* b)
         for (x = 0; x < b -> size; x++)
         {
             if (b -> grid[y][x].state == TILE_UP && b -> grid[y][x].type == TILE_NORMAL)
-                return 0; // 정답이 아닌 칸을 뒤집었다
+                return 0;     
+                // ㄴ정답이 아닌 칸을 뒤집음
 
             if (b -> grid[y][x].state == TILE_DOWN && b -> grid[y][x].type == TILE_ANSWER)
-                return 0; // 정답인 칸을 뒤집지 않았다
+                return 0; 
+                // ㄴ정답인 칸을 뒤집지 않음 
         }
     }
 
-    return 1; // 모든 칸이 일치
+    return 1;   // 모든 칸이 일치
 }
 
-/* ---------- [22] 판정 결과 표시 함수 ---------- */
+/* -------------------- [22] 판정 결과 표시 함수 -------------------- */
 void SHOW_result(const Board* b, int correct)
 {
-    DRAW_board(b, ANSWER_SHOW); // 정답 위치를 함께 보여준다
+    DRAW_board(b, ANSWER_SHOW);          // 정답 위치를 함께 보여준다. answer show 모드
 
     if (correct == 1)
         printf(C_OK "\n\n  정답입니다!" C_RESET);
@@ -685,12 +688,12 @@ void SHOW_result(const Board* b, int correct)
 
     fflush(stdout);
 
-    SLEEP_ms(1500); // 1.5초 동안 결과를 보여준다
+    SLEEP_ms(1500);                      // 1.5초 동안 결과를 보여준다
 
-    tcflush(TILE_STDIN, TCIFLUSH); // 그동안 눌린 키는 버린다
+    tcflush(TILE_STDIN, TCIFLUSH);       // 그동안 눌린 키는 버린다
 }
 
-/* ---------- [23] 게임오버 화면 함수 ---------- */
+/* -------------------- [23] 게임오버 화면 함수 -------------------- */
 void SHOW_gameover(int score, int round)
 {
     printf(CLEAR_SCREEN);
