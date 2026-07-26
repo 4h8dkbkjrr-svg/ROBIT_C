@@ -5,6 +5,9 @@
 //
 //  Created by Lee DY on 7/25/26.
 //
+
+// 중요 사항: 본 프로그램은 Mac의 터미널에서 구동해야합니다.
+
 #define _CRT_SECURE_NO_WARNINGS
 
 #include <stdio.h>    // printf, getchar, 파일 입출력, setvbuf
