@@ -6,7 +6,7 @@
 //  Created by Lee DY on 7/25/26.
 //
 
-// 중요 사항: 본 프로그램은 Mac의 터미널에서 구동해야합니다.
+// 중요 사항: 본 프로그램은 Mac의 터미널 또는 VisualStudioCode에서 구동해야합니다.
 
 #define _CRT_SECURE_NO_WARNINGS
 
@@ -652,7 +652,7 @@ void SHOW_gameover(int score, int round)
     printf(C_FAIL "      G A M E   O V E R" C_RESET "\n\n\n");
     printf("      도달 라운드 : %d\n", round);
     printf("      최종 점수   : %d\n\n\n", score);
-    printf("      메뉴로 돌아가려면 아무 키나 누르세요.\n");
+    printf("      점수를 기록하려면 아무 키나 누르세요.\n");
 
     fflush(stdout);
 
